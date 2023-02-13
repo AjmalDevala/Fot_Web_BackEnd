@@ -1,16 +1,20 @@
 import  express  from "express";
-import login from '../controller/playerController.mjs'
-
+// get all controller
+import * as controller from "../controller/player/playerController.mjs"
+// import { localVariables } from "../middleware/auth.js";
 const router= express.Router(); 
 
 
 // post
-router.route('/Signup').post()
-router.route('/login').get(login)
+
+router.route('/userSignup').post(controller.userSignup)
+router.route('/sendOtp').post(controller.sendOtp);
+router.route('/resendotp').get(controller.resendotp);
+
+//get 
+router.route('/userLogin').post(controller.userLogin)
 
 
 
-//get
 
-router.route('/home').post()
 export default router;

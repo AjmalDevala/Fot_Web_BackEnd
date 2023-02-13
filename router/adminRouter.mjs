@@ -1,12 +1,14 @@
 import  express  from "express";
-
-const router=express.Router()
-
+import * as controller from "../controller/admin/adminController.mjs"
 
 
 
+const router= express.Router(); 
 
 
+
+
+router.route('/adminLogin').post(controller.adminLogin);
 
 
 
