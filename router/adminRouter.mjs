@@ -9,6 +9,7 @@ const router= express.Router();
 
 
 router.route('/adminLogin').post(controller.adminLogin);
+// router.route('/adminLogin').post(controller.adminLogin);
 
 
 
