@@ -1,34 +1,31 @@
 import mongoose from "mongoose";
 
-const profileSchema = new mongoose.Schema({
-  userId: {
+const registerModelSchema = new mongoose.Schema({
+  scoutId: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
-    ref: 'userData'
+    ref: 'ScoutData'
   }, 
   profileUrl: {
     type: String,
-  },
-  position: {
-    type: String,
-    required: true,
   },
   dateOfBirth: {
     type: Date,
     required: true,
   },
-  nationality: {
-    type: String
-  },
   age: {
     type: Number
   },
-  height:{ type :Number},
-  foot:{type :String},
-  currentTeam: {
+  nationality: {
+    type: String
+  },
+  experience: {
+    type: String
+  },
+  currentClub: {
     type: String,
   },
-  previousTeam: [String],
+  pastClub:[String],
   language: {
     type: [String]
   }, 
@@ -48,4 +45,5 @@ const profileSchema = new mongoose.Schema({
 });
 
 
-export default mongoose.model('profileData', profileSchema)
+export default mongoose.model('RegisterData', registerModelSchema)
+

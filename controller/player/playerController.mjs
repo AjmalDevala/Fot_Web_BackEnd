@@ -1,9 +1,13 @@
 import userModel from "../../model/playerModel/userModel.mjs"
+import profileModel from "../../model/playerModel/profileModel.mjs"
 import createHttpError from "http-errors";
 import bcrypt from 'bcrypt'
 import jwt from "jsonwebtoken"
 import nodemailer from "nodemailer"
 
+
+// ....................................................................................//
+// otp creating number
 var otp = Math.random();
 otp = otp * 1000000;
 otp = parseInt(otp);
@@ -25,8 +29,9 @@ let transporter = nodemailer.createTransport({
         pass: "fhtrpmujqbqufwzy",
     },
 });
-
-export const sendOtp = async (req, res,next) => {
+// .......................................................................//
+// send otp
+export const sendOtp = async (req, res, next) => {
     Fullname = req.body.values.fullname;
     Email = req.body.values.email;
     Phone = req.body.values.phone;
@@ -43,7 +48,7 @@ export const sendOtp = async (req, res,next) => {
                     "<h1 style='font-weight:bold;'>" +
                     otp +
                     "</h1>", // html body
-                  };
+            };
 
             transporter.sendMail(mailOptions, (error, info) => {
                 if (error) {
@@ -57,33 +62,36 @@ export const sendOtp = async (req, res,next) => {
                 });
             });
         }
-      }catch (error){
-       next (error)
+    } catch (error) {
+        next(error)
     }
 }
+// ............................................................................//
+// resendOtp
 
-   //resend otp
-   export const resendotp= (req, res,next) => {
-    try{
-    var mailOptions = {
-        to: Email,
-        subject: "Otp for registration is: ",
-        html: "<h3>OTP for account verification is </h3>" + "<h1 style='font-weight:bold;'>" + otp + "</h1>" // html body
-    };
+export const resendOtp = (req, res, next) => {
+    try {
+        var mailOptions = {
+            to: Email,
+            subject: "Otp for registration is: ",
+            html: "<h3>OTP for account verification is </h3>" + "<h1 style='font-weight:bold;'>" + otp + "</h1>" // html body
+        };
 
-    transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            return console.log(error);
-        }
-        console.log('Message sent: %s', info.messageId);
-        console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
-        res.render('otp', { msg: "otp has been sent",Email });
-    });
-}catch{
-    res.render("error")
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                return console.log(error);
+            }
+            console.log('Message sent: %s', info.messageId);
+            console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
+            res.render('otp', { msg: "otp has been sent" });
+        });
+    } catch (error) {
+        error
+    }
+
 }
-}
-
+// ...................................................................................................//
+// user SignUp
 
 export const userSignup = async (req, res) => {
     let userOtp = req.body.otpvalue
@@ -116,34 +124,7 @@ export const userSignup = async (req, res) => {
 }
 
 
-
-
-// user Signup
-// export const userSignup = async (req, res, next) => {
-//     const fullname = req.body.values.fullname;
-//     const email = req.body.values.email;
-//     const passwordRaw = req.body.values.password;
-//     const phone = req.body.values.phone;
-//     try {
-//         console.log(req.body);
-//         const existingEmail = await userModel.findOne({ email }).exec()
-//         if (existingEmail) return next(createHttpError(409, "Email address is already taken. Please choose another one or log in instead"));
-//         const hashedPassword = await bcrypt.hash(passwordRaw, 10);
-//         const newUser = await userModel.create({
-//             fullname,
-//             email,
-//             phone,
-//             password: hashedPassword,
-//         })
-//         return res.status(200).json({ newUser, msg: "user register successfully" });
-//     } catch (error) {
-//         next(error)
-//     }
-// }
-
-
-
-
+// .....................................................................................
 // user login
 
 export const userLogin = async (req, res, next) => {
@@ -154,14 +135,111 @@ export const userLogin = async (req, res, next) => {
         if (!user) return next(createHttpError(404, "User not found"));
         const passwordValidate = await bcrypt.compare(passwordRaw, user.password)
         if (!passwordValidate) return next(createHttpError(404, "Password does not match"));
+        const status= await userModel.findOne({ $and: [{ email },{ status: "unBlock" }] })
+        if(!status) return next(createHttpError(400,"Admin Blocked You...."))
         const token = jwt.sign({
             userId: user._id,
             fullname: user.fullname,
         }, process.env.JWT_SECRET, { expiresIn: "24h" })
-        return res.status(201).json({ fullname: user.fullname, token, msg: "Login successfull.." });
+        return res.status(201).json({ user, token, msg: "Login successfull.." });
     } catch (error) {
         next(error)
     }
 }
 
 
+//...................................................................................................
+// edit userAccount
+
+export const editAccount = async (req, res, next) => {
+    try {
+        const userId = req.decodedToken.userId
+        const { fullname, email, phone } = req.body;
+        const saveUserEdits = await userModel.findOneAndUpdate(
+            { _id: userId },
+            {
+                $set: {
+                    fullname,
+                    email,
+                    phone,
+                },
+            }
+        );
+        await saveUserEdits.save().then(() => {
+            return res.status(201).json({  msg: "Accound updated.." });
+        });
+    } catch (error) {
+        next(error)
+    }
+
+}
+
+// .....................................................................//
+// player Profile  creating or updating
+
+export const profile = async (req, res) => {
+    const { profileUrl, position, dateOfBirth, nationality, age, height, foot, currentTeam, previousTeam, language, awards, address, description } = req.body
+    const userId = req.params.userId
+    // const data = req.decodedToken.userId
+    try {
+        const profile = await profileModel.findOne({ userId }) 
+        if (!profile) {
+            const newprofile = new profileModel({
+                userId,
+                profileUrl,
+                position,
+                dateOfBirth,
+                nationality,
+                age,
+                height,
+                foot,
+                currentTeam,
+                previousTeam,
+                language,
+                nationality,
+                awards,
+                address,
+                description
+
+            });
+            await newprofile.save()
+        } else {
+            const editprofile = await profileModel.findOneAndUpdate({ userId }, {
+                profileUrl,
+                position,
+                dateOfBirth,
+                nationality,
+                age,
+                height,
+                foot,
+                currentTeam,
+                previousTeam,
+                language,
+                nationality,
+                awards,
+                address,
+                description
+
+            });
+            await editprofile.save()
+        }
+        res.json({ status: "success profile updated",updation:true });
+    } catch (error) {
+        res.status(400).send({ status: false, error: "Server Issue" });
+    }
+
+}
+
+
+
+export const showProfile = async (req, res, next) => {
+    try {
+        const userId = req.decodedToken.userId
+        if (!userId) return next(createHttpError(401, 'Invalid userId'));
+        const user = await userModel.findOne({ _id: userId })
+        const userData= await profileModel.findOne({ userId:userId })
+        res.status(200).send({ status: true, user ,userData});;
+    } catch (error) {
+        res.status(400).send({ status: false, error: "Server Issue" });
+    }
+}

@@ -22,7 +22,7 @@ import mongoose from "mongoose";
     },
     status   :{
         type : String,
-        default :"pending"
+        default :"Pending"
 
     }
     
