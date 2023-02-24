@@ -3,6 +3,7 @@ import registerModel from "../../model/scoutModel/RegisterModel.js";
 import createHttpError from "http-errors";
 import bcrypt from 'bcrypt'
 import jwt from "jsonwebtoken"
+import profileModel from "../../model/playerModel/profileModel.mjs";
 
 
 
@@ -42,14 +43,14 @@ export const scoutLogin = async (req, res, next) => {
         if (!scout) return next(createHttpError(404, "Scout not found"));
         const passwordValidate = await bcrypt.compare(passwordRaw, scout.password)
         if (!passwordValidate) return next(createHttpError(404, "Password does not match"));
-        const status= await scoutModel.findOne({ $and: [{ email },{ status: "Aproved" }] })
+        const status = await scoutModel.findOne({ $and: [{ email }, { status: "Aproved" }] })
         if (!status) return next(createHttpError(404, "Admin not approved your reqest"));
 
         const token = jwt.sign({
             scoutId: scout._id,
             fullname: scout.fullname,
         }, process.env.JWT_SECRET, { expiresIn: "24h" })
-        return res.status(201).json({ scout, token, msg: "Login successfull.." });
+        return res.status(201).json({ token,scout, msg: "Login successfull.." });
     } catch (error) {
         next(error)
     }
@@ -119,15 +120,13 @@ export const showProfile = async (req, res, next) => {
         res.status(400).send({ status: false, error: "Server Issue" });
     }
 }
-
-
-
+//edit accound in use sioe
 export const editAccount = async (req, res, next) => {
     try {
         const scoutId = req.decodedToken.scoutId
         if (!scoutId) return next(createHttpError(401, 'Invalid scoutId'));
         const { fullname, email, phone } = req.body;
-        const scout= await scoutModel.find({ _id:scoutId})
+        const scout = await scoutModel.find({ _id: scoutId })
         const scoutEdits = await scoutModel.findOneAndUpdate(
             { _id: scoutId },
             {
@@ -139,10 +138,46 @@ export const editAccount = async (req, res, next) => {
             }
         );
         await scoutEdits.save().then(() => {
-            return res.status(201).json({msg: "Login successfull.." });
+            return res.status(201).json({ msg: "Login successfull.." });
         });
     } catch (error) {
         next(error)
     }
+}
 
+//.............................................................................................//
+//single player page 
+
+
+export const singlePlayer =async(req,res,next)=>{
+    try {
+        const playerId=req.params.playerId
+        if(!playerId) return next (createHttpError(401,'invalid PlayerId'))
+         const player =await profileModel.findOne({userId:playerId}).populate("userId")
+         if (!player) return next (createHttpError(401,"no player...."))
+         res.status(200).send({player})
+    } catch (error) {
+        res.status(400).send({ status: false, error: "Server Issue" });
+    }
+}
+
+
+//...............................................................................................//
+//add players connection// 
+
+
+export const connectPlayer = async (req, res, next) => {
+ try{
+    const scoutId = req.query.scoutId
+    console.log(scoutId)
+    if (!scoutId) return next(createHttpError(404, "Invalid user Id"))
+     const userId = req.query.userId
+     if (!userId) return next(createHttpError(404,"invalid scout Id"))
+     await  scoutModel.findOneAndUpdate({_id:scoutId},{$push:{connectedPlayers:userId}})
+ .then(()=>{
+    return res.status(201).json({ msg: "you request sended.." });
+ })
+}catch(error){
+    next(error)
+}
 }

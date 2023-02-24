@@ -24,7 +24,15 @@ import mongoose from "mongoose";
         type : String,
         default :"unBlocked"
 
-    }
+    },
+    premium :{
+        type:Boolean,
+        default :false
+    },
+    connectedScout :[{
+        type:mongoose.Schema.Types.ObjectId,
+        ref  :"scoutData"
+    }]
     
-})
+},{timestamps:true})
 export default mongoose.model('userData',userSchema)

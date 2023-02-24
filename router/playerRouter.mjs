@@ -9,13 +9,14 @@ const router= express.Router();
 router.route('/userSignup').post(controller.userSignup);
 router.route('/userLogin').post(controller.userLogin)
 router.route('/sendOtp').post(controller.sendOtp);
-
+router.route('/connectScout').post(controller.connectScout)
+router.route('/editProfile/:userId').post(auth,controller.profile);
 //get 
 
 router.route('/resendotp').get(controller.resendOtp)
 router.route('/showProfile').get(auth,controller.showProfile)
-router.route('/editProfile/:userId').post(auth,controller.profile);
 
+router.route('/singleScout/:scoutId').get(controller.singleScout)
 
 
 export default router;

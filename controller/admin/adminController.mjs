@@ -5,6 +5,8 @@ import jwt from "jsonwebtoken"
 import userModel from "../../model/playerModel/userModel.mjs";
 import scoutModel from "../../model/scoutModel/scoutModel.mjs";
 import profileModel from "../../model/playerModel/profileModel.mjs";
+import registerModel from "../../model/scoutModel/RegisterModel.js";
+
 // admin login
 
 export const adminLogin = async (req, res, next) => {
@@ -47,12 +49,14 @@ export const allplayer = async (req, res, next) => {
     }
 
 }
+
 export const allScout = async (req, res, next) => {
     try {
         const allScout = await scoutModel.find();
         if (!allScout) return next(createHttpError(404, "scout not found"));
-
-        res.json(allScout);
+        const scout =await registerModel.find().populate("scoutId")
+        if(!scout ) return next (createHttpError(404,"no scout data...."))
+        res.json({allScout ,scout});
     } catch (error) {
         next(error)
     }
@@ -78,7 +82,6 @@ export const blockUser = async (req, res, next) => {
 //.....................................................................................//
 //scot management
 export const pending = async (req, res, next) => {
-    console.log(req.params.id, 'ASDFGHJ');
     await scoutModel.findOneAndUpdate({ _id: req.params.id }, { $set: { status: "Aproved" } })
     res.status(200).json({
         status: 'success'
@@ -86,7 +89,6 @@ export const pending = async (req, res, next) => {
 }
 
 export const aproved = async (req, res, next) => {
-    console.log(req.params.id, 'ASDFGHJ');
     await scoutModel.findOneAndUpdate({ _id: req.params.id }, { $set: { status: "Pending" } })
     res.status(200).json({
         status: 'success'

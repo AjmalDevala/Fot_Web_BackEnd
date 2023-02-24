@@ -4,6 +4,7 @@ import createHttpError from "http-errors";
 import bcrypt from 'bcrypt'
 import jwt from "jsonwebtoken"
 import nodemailer from "nodemailer"
+import registerModel from "../../model/scoutModel/RegisterModel.js";
 
 
 // ....................................................................................//
@@ -231,6 +232,8 @@ export const profile = async (req, res) => {
 }
 
 
+//....................................................................................??
+
 
 export const showProfile = async (req, res, next) => {
     try {
@@ -243,3 +246,39 @@ export const showProfile = async (req, res, next) => {
         res.status(400).send({ status: false, error: "Server Issue" });
     }
 }
+
+
+//........................................................................................//
+//show the Scout id
+
+export const singleScout =async(req,res,next)=>{
+    try {
+        const scoutId=req.params.scoutId
+        if(!scoutId) return next (createHttpError(401,'invalid ScoutId'))
+         const scout =await registerModel.findOne({scoutId:scoutId}).populate("scoutId")
+         if (!scout) return next (createHttpError(401,"no scout...."))
+         res.status(200).send({scout})
+    } catch (error) {
+        res.status(400).send({ status: false, error: "Server Issue" });
+    }
+}
+
+//....................................................................................//
+// connectScout
+export const connectScout = async (req, res, next) => {
+    try{
+       const playerId = req.query.playerId
+       if (!playerId) return next(createHttpError(404, "Invalid player Id"))
+        const scoutId = req.query.scoutId
+        if (!scoutId) return next(createHttpError(404,"invalid scout Id"))
+        const exitScout =await userModel.find({connectedScout:scoutId})
+        if (exitScout) return next (createHttpError(400,("your Request alredy send")))
+        await  userModel.findOneAndUpdate({_id:playerId},{$push:{connectedScout:scoutId}})
+    .then(()=>{
+       return res.status(201).json({ msg: "you request sended.." });
+    })
+   }catch(error){
+       next(error)
+   }
+   }
+
