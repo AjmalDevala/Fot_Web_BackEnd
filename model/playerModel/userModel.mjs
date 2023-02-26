@@ -22,7 +22,7 @@ import mongoose from "mongoose";
     },
     status   :{
         type : String,
-        default :"unBlocked"
+        default :"unBlock"
 
     },
     premium :{

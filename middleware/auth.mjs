@@ -1,11 +1,12 @@
 import createHttpError from "http-errors";
 import jwt from 'jsonwebtoken'
-
 //   get the token from the authorization header
+
 export const auth = async (req, res, next) => {
     try {
         if (!req.headers.authorization) return next(createHttpError(401, 'Invalid request!'))
         const token = req.headers.authorization.split(" ")[1];
+        console.log(token);
         if (!token) return next(createHttpError(401, 'No token!'))
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
         req.decodedToken = decodedToken;

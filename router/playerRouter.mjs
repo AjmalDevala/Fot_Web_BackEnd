@@ -11,12 +11,11 @@ router.route('/userLogin').post(controller.userLogin)
 router.route('/sendOtp').post(controller.sendOtp);
 router.route('/connectScout').post(controller.connectScout)
 router.route('/editProfile/:userId').post(auth,controller.profile);
+router.route('/premiumPlayer/:userId').post(controller.premiumPlayer)
 //get 
 
 router.route('/resendotp').get(controller.resendOtp)
 router.route('/showProfile').get(auth,controller.showProfile)
-
 router.route('/singleScout/:scoutId').get(controller.singleScout)
-
 
 export default router;

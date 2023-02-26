@@ -43,14 +43,14 @@ export const scoutLogin = async (req, res, next) => {
         if (!scout) return next(createHttpError(404, "Scout not found"));
         const passwordValidate = await bcrypt.compare(passwordRaw, scout.password)
         if (!passwordValidate) return next(createHttpError(404, "Password does not match"));
-        const status = await scoutModel.findOne({ $and: [{ email }, { status: "Aproved" }] })
-        if (!status) return next(createHttpError(404, "Admin not approved your reqest"));
+        // const status = await scoutModel.findOne({ $and: [{ email }, { status: "Aproved" }] })
+        // if (!status) return next(createHttpError(404, "Admin not approved your reqest"));
 
         const token = jwt.sign({
             scoutId: scout._id,
             fullname: scout.fullname,
         }, process.env.JWT_SECRET, { expiresIn: "24h" })
-        return res.status(201).json({ token,scout, msg: "Login successfull.." });
+        return res.status(201).json({ token, scout, msg: "Login successfull.." });
     } catch (error) {
         next(error)
     }
@@ -63,6 +63,7 @@ export const register = async (req, res) => {
     const { profileUrl, dateOfBirth, age, nationality, experience, currentClub, pastClub, language, awards, address, description } = req.body
     // const scoutId = req.params.scoutId
     const scoutId = req.decodedToken.scoutId
+    const scout = await scoutModel.findOne({ _id: scoutId })
     const register = await registerModel.findOne({ scoutId })
     try {
         if (!register) {
@@ -101,7 +102,7 @@ export const register = async (req, res) => {
             });
             await register.save()
         }
-        res.json({ status: "success profile updated", updation: true });
+        res.json({ scout, updation: true });
     } catch (error) {
         res.status(400).send({ status: false, error: "Server Issue" });
     }
@@ -138,7 +139,7 @@ export const editAccount = async (req, res, next) => {
             }
         );
         await scoutEdits.save().then(() => {
-            return res.status(201).json({ msg: "Login successfull.." });
+            return res.status(201).json({ scout, msg: "Login successfull.." });
         });
     } catch (error) {
         next(error)
@@ -149,13 +150,13 @@ export const editAccount = async (req, res, next) => {
 //single player page 
 
 
-export const singlePlayer =async(req,res,next)=>{
+export const singlePlayer = async (req, res, next) => {
     try {
-        const playerId=req.params.playerId
-        if(!playerId) return next (createHttpError(401,'invalid PlayerId'))
-         const player =await profileModel.findOne({userId:playerId}).populate("userId")
-         if (!player) return next (createHttpError(401,"no player...."))
-         res.status(200).send({player})
+        const playerId = req.params.playerId
+        if (!playerId) return next(createHttpError(401, 'invalid PlayerId'))
+        const player = await profileModel.findOne({ userId: playerId }).populate("userId")
+        if (!player) return next(createHttpError(401, "no player...."))
+        res.status(200).send({ player })
     } catch (error) {
         res.status(400).send({ status: false, error: "Server Issue" });
     }
@@ -167,17 +168,16 @@ export const singlePlayer =async(req,res,next)=>{
 
 
 export const connectPlayer = async (req, res, next) => {
- try{
-    const scoutId = req.query.scoutId
-    console.log(scoutId)
-    if (!scoutId) return next(createHttpError(404, "Invalid user Id"))
-     const userId = req.query.userId
-     if (!userId) return next(createHttpError(404,"invalid scout Id"))
-     await  scoutModel.findOneAndUpdate({_id:scoutId},{$push:{connectedPlayers:userId}})
- .then(()=>{
-    return res.status(201).json({ msg: "you request sended.." });
- })
-}catch(error){
-    next(error)
-}
+    try {
+        const scoutId = req.query.scoutId
+        if (!scoutId) return next(createHttpError(404, "Invalid user Id"))
+        const userId = req.query.userId
+        if (!userId) return next(createHttpError(404, "invalid scout Id"))
+        await scoutModel.findOneAndUpdate({ _id: scoutId }, { $push: { connectedPlayers: userId } })
+            .then(() => {
+                return res.status(201).json({ msg: "you request sended.." });
+            })
+    } catch (error) {
+        next(error)
+    }
 }

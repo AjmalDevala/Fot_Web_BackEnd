@@ -282,3 +282,20 @@ export const connectScout = async (req, res, next) => {
    }
    }
 
+//......................................................................................................//
+// premium player
+
+export  const premiumPlayer= async(req,res,next)=>{
+    try {
+     const userId = req.params.userId
+     const user = await userModel.find({_id:userId})
+        if(!userId) return (createHttpError(404,"user Not Found"))  ; 
+        await userModel.findByIdAndUpdate({ _id: userId }, { $set: { premium: true } })
+        .then(()=>{
+            return res.status(201).json({ msg: "Now your a Premium Member" ,user});
+         })
+    } catch (error) {
+        next(error) 
+    }
+
+}
