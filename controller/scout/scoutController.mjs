@@ -166,16 +166,17 @@ export const singlePlayer = async (req, res, next) => {
 //...............................................................................................//
 //add players connection// 
 
-
 export const connectPlayer = async (req, res, next) => {
     try {
-        const scoutId = req.query.scoutId
+        const {scoutId }= req.query
         if (!scoutId) return next(createHttpError(404, "Invalid user Id"))
-        const userId = req.query.userId
+        const {userId} = req.query
         if (!userId) return next(createHttpError(404, "invalid scout Id"))
+        const exitPlayer = await scoutModel.findOne({ _id: scoutId, connectedPlayers: { $in: [userId] } })
+        if (exitPlayer) return next(createHttpError(401, "your request alredy send"))
         await scoutModel.findOneAndUpdate({ _id: scoutId }, { $push: { connectedPlayers: userId } })
             .then(() => {
-                return res.status(201).json({ msg: "you request sended.." });
+                res.status(200).send({ msg:"succes" })
             })
     } catch (error) {
         next(error)

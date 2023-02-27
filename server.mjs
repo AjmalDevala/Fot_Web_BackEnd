@@ -10,14 +10,14 @@ import playerRoute from "./router/playerRouter.mjs"
 import adminRoute from "./router/adminRouter.mjs";
 import scoutRoute from "./router/scoutrouter.mjs";
 const app = express();
+//..................................................................................................//
+//server
 
 const server=http.createServer(app);
-
 app.use(express.json());
 app.use(cors())
 app.use(morgan('tiny'));
 app.disable('x-powered-by'); //less hackers know about our stack 
-
 
 //API starting point for Admin,player,scout
 
@@ -65,23 +65,24 @@ io.on("connection", (socket) => {
             socket.to(sendUserSocket).emit("msg-receive", data.message)
         }
     })
-    // Handle disconnections
+    
+// Handle disconnections
+
     socket.on('disconnect', () => {
         console.log('Client disconnected:', socket.id);
     });
 })
 
 //  start server only when we have valid connections
+
 const port = process.env.PORT
 mongoose.connect(process.env.MONGO_CONNECTION).then(() => {
     try {
         server.listen(port, () => {
             console.log(`server&database connected to http://localhost:${port}`);
         })
-
     } catch (error) {
         console.log('connot connect to the server');
-
     }
 }).catch(error => {
     console.log('Invalid Database Connection...!')

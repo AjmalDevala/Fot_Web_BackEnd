@@ -5,6 +5,7 @@ import bcrypt from 'bcrypt'
 import jwt from "jsonwebtoken"
 import nodemailer from "nodemailer"
 import registerModel from "../../model/scoutModel/RegisterModel.js";
+import notificationModel from "../../model/notificationModel.mjs";
 
 
 // ....................................................................................//
@@ -136,8 +137,8 @@ export const userLogin = async (req, res, next) => {
         if (!user) return next(createHttpError(404, "User not found"));
         const passwordValidate = await bcrypt.compare(passwordRaw, user.password)
         if (!passwordValidate) return next(createHttpError(404, "Password does not match"));
-        const status= await userModel.findOne({ $and: [{ email },{ status: "unBlock" }] })
-        if(!status) return next(createHttpError(400,"Admin Blocked You...."))
+        const status = await userModel.findOne({ $and: [{ email }, { status: "unBlock" }] })
+        if (!status) return next(createHttpError(400, "Admin Blocked You...."))
         const token = jwt.sign({
             userId: user._id,
             fullname: user.fullname,
@@ -167,7 +168,7 @@ export const editAccount = async (req, res, next) => {
             }
         );
         await saveUserEdits.save().then(() => {
-            return res.status(201).json({  msg: "Accound updated.." });
+            return res.status(201).json({ msg: "Accound updated.." });
         });
     } catch (error) {
         next(error)
@@ -183,7 +184,7 @@ export const profile = async (req, res) => {
     const userId = req.params.userId
     // const data = req.decodedToken.userId
     try {
-        const profile = await profileModel.findOne({ userId }) 
+        const profile = await profileModel.findOne({ userId })
         if (!profile) {
             const newprofile = new profileModel({
                 userId,
@@ -224,7 +225,7 @@ export const profile = async (req, res) => {
             });
             await editprofile.save()
         }
-        res.json({ status: "success profile updated",updation:true });
+        res.json({ status: "success profile updated", updation: true });
     } catch (error) {
         res.status(400).send({ status: false, error: "Server Issue" });
     }
@@ -233,15 +234,13 @@ export const profile = async (req, res) => {
 
 
 //....................................................................................??
-
-
 export const showProfile = async (req, res, next) => {
     try {
         const userId = req.decodedToken.userId
         if (!userId) return next(createHttpError(401, 'Invalid userId'));
         const user = await userModel.findOne({ _id: userId })
-        const userData= await profileModel.findOne({ userId:userId })
-        res.status(200).send({ status: true, user ,userData});;
+        const userData = await profileModel.findOne({ userId: userId })
+        res.status(200).send({ status: true, user, userData });;
     } catch (error) {
         res.status(400).send({ status: false, error: "Server Issue" });
     }
@@ -251,51 +250,60 @@ export const showProfile = async (req, res, next) => {
 //........................................................................................//
 //show the Scout id
 
-export const singleScout =async(req,res,next)=>{
+export const singleScout = async (req, res, next) => {
     try {
-        const scoutId=req.params.scoutId
-        if(!scoutId) return next (createHttpError(401,'invalid ScoutId'))
-         const scout =await registerModel.findOne({scoutId:scoutId}).populate("scoutId")
-         if (!scout) return next (createHttpError(401,"no scout...."))
-         res.status(200).send({scout})
+        const scoutId = req.params.scoutId
+        if (!scoutId) return next(createHttpError(401, 'invalid ScoutId'))
+        const scout = await registerModel.findOne({ scoutId: scoutId }).populate("scoutId")
+        if (!scout) return next(createHttpError(401, "no scout...."))
+        res.status(200).send({ scout })
     } catch (error) {
         res.status(400).send({ status: false, error: "Server Issue" });
     }
 }
 
-//....................................................................................//
-// connectScout
-export const connectScout = async (req, res, next) => {
-    try{
-       const playerId = req.query.playerId
-       if (!playerId) return next(createHttpError(404, "Invalid player Id"))
-        const scoutId = req.query.scoutId
-        if (!scoutId) return next(createHttpError(404,"invalid scout Id"))
-        const exitScout =await userModel.find({connectedScout:scoutId})
-        if (exitScout) return next (createHttpError(400,("your Request alredy send")))
-        await  userModel.findOneAndUpdate({_id:playerId},{$push:{connectedScout:scoutId}})
-    .then(()=>{
-       return res.status(201).json({ msg: "you request sended.." });
-    })
-   }catch(error){
-       next(error)
-   }
-   }
-
 //......................................................................................................//
 // premium player
 
-export  const premiumPlayer= async(req,res,next)=>{
+
+export const premiumPlayer = async (req, res, next) => {
     try {
-     const userId = req.params.userId
-     const user = await userModel.find({_id:userId})
-        if(!userId) return (createHttpError(404,"user Not Found"))  ; 
+        const userId = req.params.userId
+        const user = await userModel.find({ _id: userId })
+        if (!userId) return (createHttpError(404, "user Not Found"));
         await userModel.findByIdAndUpdate({ _id: userId }, { $set: { premium: true } })
-        .then(()=>{
-            return res.status(201).json({ msg: "Now your a Premium Member" ,user});
-         })
+            .then(() => {
+                return res.status(201).json({ msg: "Now your a Premium Member", user });
+            })
     } catch (error) {
-        next(error) 
+        next(error)
     }
 
+}
+
+//....................................................................................//
+// connectScout
+
+export const connectScout = async (req, res, next) => {
+    try {
+        const userId = req.query.userId
+        if (!userId) return next(createHttpError(404, "Invalid player "))
+        const scoutId = req.query.scoutId
+        if (!scoutId) return next(createHttpError(404, "invalid scout Id"))
+        // const exitScout = await userModel.findOne({ _id: userId, connectedScout: { $in: [scoutId] } })
+        // if (exitScout) return next(createHttpError(400, "your Request alredy send"))
+        // await userModel.findOneAndUpdate({_id:userId},{$push:{connectedScout:scoutId}})
+        const send = await notificationModel.findOne({ $and: [{ sender: userId }, { receiver: scoutId }] });
+        if (send) return next (createHttpError(401,"your Request alredy send "))
+        const newNotification = new notificationModel({
+            sender: userId,
+            receiver: scoutId,
+        })
+        newNotification.save()
+            .then(() => {
+                res.status(200).send({ msg: "your Request send successfully", "waiting": true })
+            })
+    } catch (error) {
+        next(error)
+    }
 }
