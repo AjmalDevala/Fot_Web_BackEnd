@@ -149,7 +149,25 @@ export const userLogin = async (req, res, next) => {
     }
 }
 
+//..............................................................................
+//check user
 
+export const checkUser = async(req ,res) =>{
+
+    let {userId} =  req.decodedToken
+    console.log(userId,"fghdflhjkdghsflkhsg................");
+    try{
+
+      const user =  await userModel.findOne({_id:userId})
+        res.status(200).send({status:true, user})
+      
+    }catch(error){
+          console.log(error);
+    }
+
+
+    
+  }   
 //...................................................................................................
 // edit userAccount
 
@@ -307,3 +325,6 @@ export const connectScout = async (req, res, next) => {
         next(error)
     }
 }
+
+
+

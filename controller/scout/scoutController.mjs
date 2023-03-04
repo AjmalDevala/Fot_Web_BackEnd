@@ -4,6 +4,8 @@ import createHttpError from "http-errors";
 import bcrypt from 'bcrypt'
 import jwt from "jsonwebtoken"
 import profileModel from "../../model/playerModel/profileModel.mjs";
+import notificationModel from "../../model/notificationModel.mjs";
+import userModel from "../../model/playerModel/userModel.mjs";
 
 
 
@@ -174,11 +176,26 @@ export const connectPlayer = async (req, res, next) => {
         if (!userId) return next(createHttpError(404, "invalid scout Id"))
         const exitPlayer = await scoutModel.findOne({ _id: scoutId, connectedPlayers: { $in: [userId] } })
         if (exitPlayer) return next(createHttpError(401, "your request alredy send"))
-        await scoutModel.findOneAndUpdate({ _id: scoutId }, { $push: { connectedPlayers: userId } })
+        await scoutModel.findOneAndUpdate({ _id: scoutId }, { $addToSet: { connectedPlayers: userId } })
+        await userModel.findOneAndUpdate({ _id: userId }, { $addToSet: { connectedScout: scoutId } })
             .then(() => {
                 res.status(200).send({ msg:"succes" })
             })
     } catch (error) {
         next(error)
+    }
+}
+
+
+
+//.......................................Notification....................................................................//
+
+export const notification = async (req,res,next)=>{
+    try {
+    const scoutId = req.decodedToken.scoutId
+    console.log(scoutId)
+    const send = await notificationModel.findOne()
+    } catch (error) {
+        
     }
 }

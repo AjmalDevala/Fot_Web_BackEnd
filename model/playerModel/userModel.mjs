@@ -31,7 +31,7 @@ import mongoose from "mongoose";
     },
     connectedScout :[{
         type:mongoose.Schema.Types.ObjectId,
-        ref  :"scoutData"
+        ref  :"ScoutData"
     }]
     
 },{timestamps:true})

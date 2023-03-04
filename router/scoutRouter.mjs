@@ -16,5 +16,6 @@ router.route('/connectPlayer').post(controller.connectPlayer)
 
 router.route('/showProfile').get(auth,controller.showProfile)
 router.route('/singlePlayer/:playerId').get(controller.singlePlayer)
+router.route('/notification').get(auth,controller.notification)
 
 export default router;

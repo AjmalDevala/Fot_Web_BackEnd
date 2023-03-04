@@ -12,6 +12,8 @@ router.route('/sendOtp').post(controller.sendOtp);
 router.route('/connectScout').post(controller.connectScout)
 router.route('/editProfile/:userId').post(auth,controller.profile);
 router.route('/premiumPlayer/:userId').post(controller.premiumPlayer)
+router.route("/verifyUser").get(auth,controller.checkUser);
+
 //get 
 
 router.route('/resendotp').get(controller.resendOtp)
