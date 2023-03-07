@@ -45,9 +45,6 @@ export const scoutLogin = async (req, res, next) => {
         if (!scout) return next(createHttpError(404, "Scout not found"));
         const passwordValidate = await bcrypt.compare(passwordRaw, scout.password)
         if (!passwordValidate) return next(createHttpError(404, "Password does not match"));
-        // const status = await scoutModel.findOne({ $and: [{ email }, { status: "Aproved" }] })
-        // if (!status) return next(createHttpError(404, "Admin not approved your reqest"));
-
         const token = jwt.sign({
             scoutId: scout._id,
             fullname: scout.fullname,
@@ -58,6 +55,22 @@ export const scoutLogin = async (req, res, next) => {
     }
 
 }
+
+// protuct router
+// ......................................
+export const checkScout = async (req, res) => {
+    let { scoutId } = req.decodedToken
+    try {
+        const scout = await scoutModel.findOne({ _id: scoutId })
+        res.status(200).send({ status: true, scout })
+    } catch (error) {
+        console.log(error);
+    }
+    
+}
+
+
+
 
 
 //'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''//
@@ -170,7 +183,7 @@ export const singlePlayer = async (req, res, next) => {
 
 export const connectPlayer = async (req, res, next) => {
     try {
-        const {scoutId }= req.query
+        const scoutId= req.decodedToken.scoutId
         if (!scoutId) return next(createHttpError(404, "Invalid user Id"))
         const {userId} = req.query
         if (!userId) return next(createHttpError(404, "invalid scout Id"))

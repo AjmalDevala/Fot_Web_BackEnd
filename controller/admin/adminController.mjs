@@ -23,7 +23,7 @@ export const adminLogin = async (req, res, next) => {
             adminId: admin._id,
             fullname: admin.fullname,
         }, process.env.JWT_SECRET, { expiresIn: "24h" })
-        return res.status(201).json({ admin , token, msg: "Login successfull.." });
+        return res.status(201).json({ admin, token, msg: "Login successfull.." });
     } catch (error) {
         next(error)
     }
@@ -43,72 +43,62 @@ export const dashbord = async (req, res, next) => {
     }
 }
 
+//admin data for 
+// .....................................................................................
 
-// export const chart = async (req, res, next) => {
-//     try {
-//     const today = new Date();
-//     const tenDaysAgo = new Date(today.getTime() - 10 * 24 * 60 * 60 * 1000); // 10 days ago from today
-//     const users = await userModel.find({ createdAt: { $gte: tenDaysAgo } });
-//     res.status(200).json({
-//       users,
-//       tenDaysAgo,
-//     });
+export const checkAdmin = async (req, res) => {
+    let { adminId } = req.decodedToken
+    try {
+        const admin = await adminModel.findOne({ _id: adminId })
+        res.status(200).send({ status: true, admin })
+    } catch (error) {
+        console.log(error);
+    }
+    
+}
 
-//     } catch (error) {
-//         next(error)
-//     }
-// }
+
 
 export const chart = async (req, res, next) => {
-  try {
-    const today = moment().endOf('day');
-    const tenDaysAgo = moment().subtract(10, 'days').startOf('day');
-    const users = await userModel.aggregate([
-      {
-        $match: {
-          createdAt: { $gte: tenDaysAgo.toDate(), $lte: today.toDate() },
-        },
-      },
-      {
-        $group: {
-          _id: {
-            year: { $year: '$createdAt' },
-            month: { $month: '$createdAt' },
-            day: { $dayOfMonth: '$createdAt' },
-          },
-          count: { $sum: 1 },
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          date: {
-            $dateFromParts: {
-              year: '$_id.year',
-              month: '$_id.month',
-              day: '$_id.day',
+    try {
+        const today = moment().endOf('day');
+        const tenDaysAgo = moment().subtract(30, 'days').startOf('day');
+        const users = await userModel.aggregate([
+            {
+                $match: {
+                    createdAt: { $gte: tenDaysAgo.toDate(), $lte: today.toDate() },
+                },
             },
-          },
-          count: 1,
-        },
-      },
-    ]);
-    // Transform data for chart.js
-    const labels = [];
-    const data = [];
-    for (let i = 0; i < 10; i++) {
-      const date = moment().subtract(i, 'days').format('MMM DD');
-      const count = users.find((user) => moment(user.date).isSame(moment().subtract(i, 'days'), 'day'))?.count || 0;
-      labels.unshift(date);
-      data.unshift(count);
+            {
+                $group: {
+                    _id: {
+                        year: { $year: '$createdAt' },
+                        month: { $month: '$createdAt' },
+                        day: { $dayOfMonth: '$createdAt' },
+                    },
+                    count: { $sum: 1 },
+                },
+            },
+            {
+                $project: {
+                    _id: 0,
+                    date: {
+                        $dateFromParts: {
+                            year: '$_id.year',
+                            month: '$_id.month',
+                            day: '$_id.day',
+                        },
+                    },
+                    count: 1,
+                },
+            },
+        ]);
+        res.status(200).json({
+            users
+        });
+    } catch (error) {
+        next(error);
     }
-    console.log(users)
-    res.status(200).json({
-      users
-    });
-  } catch (error) {
-    next(error);
-  }
 };
 
 
@@ -136,7 +126,7 @@ export const allplayer = async (req, res, next) => {
 
 export const allScout = async (req, res, next) => {
     try {
-        const userId = req.query.userId
+        const userId = req.decodedToken.userId
         const user = await userModel.find({ _id: userId })
         const allScout = await scoutModel.find().sort({ createdAt: -1 })
         if (!allScout) return next(createHttpError(404, "scout not found"));
@@ -187,7 +177,7 @@ export const aproved = async (req, res, next) => {
 
 export const connectedPlayers = async (req, res, next) => {
     try {
-        const { scoutId } = req.query
+        const { scoutId } = req.decodedToken
         const scout = await scoutModel.findOne({ _id: scoutId })
         const connectPlayer = scout.connectedPlayers
         res.json({ connectPlayer })
@@ -198,7 +188,7 @@ export const connectedPlayers = async (req, res, next) => {
 // ........................................
 export const connectedScoutCheck = async (req, res, next) => {
     try {
-        const { userId } = req.query
+        const { userId } = req.decodedToken
         const user = await userModel.findOne({ _id: userId })
         const connectedScout = user.connectedScout
         res.json({ connectedScout })
@@ -224,8 +214,7 @@ export const connectedScout = async (req, res) => {
 export const connectedUsers = async (req, res, next) => {
     try {
         const { scoutId } = req.decodedToken
-        const connectedPlayers = await scoutModel.findOne({ _id: scoutId }).populate('connectedPlayers');
-
+        const connectedPlayers = await scoutModel.findOne({ _id: scoutId }).populate('connectedPlayers')
         res.status(200).json(connectedPlayers);
     } catch (error) {
         return res.status(500).json("Internal server error");
@@ -255,16 +244,15 @@ export const removeUser = async (req, res, next) => {
 //.........................................................................
 export const sendMessage = async (req, res, next) => {
     try {
-
-        const { from, message, to } = req.body
-        if (!from || !message || !to) {
+        const { from, message, to, type } = req.body
+        if (!from || !message || !to || !type) {
             return next(createHttpError(401, "Don't send dummy data!"));
         }
-
         const newMessage = new chatModel({
             message: message,
             chatUsers: [from, to],
-            sender: from
+            sender: from,
+            type
         })
         newMessage.save()
         res.status(201).json(newMessage)
@@ -284,12 +272,13 @@ export const getMessage = async (req, res, next) => {
             chatUsers: {
                 $all: [from, to]
             }
-        }).sort({ createdAt: -1 })
+        }).sort({ createdAt: 1 })
 
         const allMessage = newMessage.map((msg) => {
             return {
                 myself: msg.sender.toString() === from,
-                message: msg.message
+                message: msg.message,
+                type: msg.type
             }
         })
         await chatModel.updateMany({ chatUsers: { $all: [from, to] }, sender: { $ne: from } }, { $set: { read: true } })
@@ -304,13 +293,14 @@ export const getMessage = async (req, res, next) => {
 //unread message 
 //................................................................................................................
 export const unreadUser = async (req, res, next) => {
-    const userId = req.params.userId
+    const userId = req.decodedToken.userId
     const count = await chatModel.countDocuments({ chatUsers: userId, sender: { $ne: userId }, read: false });
     res.status(200).json({ count })
 }
 
 export const unreadScout = async (req, res, next) => {
-    const scoutId = req.params.scoutId
+    const scoutId = req.decodedToken.scoutId
+    // const scoutId = req.params.scoutId
     const count = await chatModel.countDocuments({ chatUsers: scoutId, sender: { $ne: scoutId }, read: false });
     res.status(200).json({ count })
 }

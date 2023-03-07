@@ -60,9 +60,10 @@ io.on("connection", (socket) => {
         onlineUsers.set(id, socket.id);
     })
     socket.on("send-msg", (data) => {
+        
         const sendUserSocket = onlineUsers.get(data.to)
         if (sendUserSocket) {
-            socket.to(sendUserSocket).emit("msg-receive", data.message)
+            socket.to(sendUserSocket).emit("msg-receive", data)
         }
     })
     
