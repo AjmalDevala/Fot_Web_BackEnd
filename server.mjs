@@ -8,7 +8,7 @@ import mongoose from 'mongoose'
 import createHttpError, { isHttpError } from 'http-errors';
 import playerRoute from "./router/playerRouter.mjs"
 import adminRoute from "./router/adminRouter.mjs";
-import scoutRoute from "./router/scoutrouter.mjs";
+import scoutRoute from "./router/scoutRouter.mjs";
 const app = express();
 //..................................................................................................//
 //server
