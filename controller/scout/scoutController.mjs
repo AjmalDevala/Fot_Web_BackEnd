@@ -1,5 +1,5 @@
 import scoutModel from "../../model/scoutModel/scoutModel.mjs"
-import registerModel from "../../model/scoutModel/RegisterModel.js";
+import registerModel from "../../model/scoutModel/registerModel.mjs";
 import createHttpError from "http-errors";
 import bcrypt from 'bcrypt'
 import jwt from "jsonwebtoken"

@@ -14,9 +14,9 @@ router.route('/blockUser/:id').post(auth, controller.blockUser);
 router.route('/unBlockUser/:id').post(auth, controller.unBlockUser);
 
 
-router.route('/allplayer').get(auth, controller.allplayer);
+router.route('/allplayer').get(auth, controller.allPlayer);
 router.route('/allScout').get(auth, controller.allScout);
-router.route('/dashbord').get(auth, controller.dashbord)
+router.route('/dashbord').get(auth, controller.dashBord)
 router.route('/connectedPlayers').get(auth, controller.connectedPlayers)
 router.route('/connectedScoutCheck').get(auth, controller.connectedScoutCheck)
 

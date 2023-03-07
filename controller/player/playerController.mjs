@@ -4,7 +4,7 @@ import createHttpError from "http-errors";
 import bcrypt from 'bcrypt'
 import jwt from "jsonwebtoken"
 import nodemailer from "nodemailer"
-import registerModel from "../../model/scoutModel/RegisterModel.js";
+import registerModel from "../../model/scoutModel/registerModel.mjs";
 import notificationModel from "../../model/notificationModel.mjs";
 import scoutModel from "../../model/scoutModel/scoutModel.mjs";
 

@@ -1,14 +1,13 @@
-import adminModel from "../../model/adminModel/adminModel.js"
 import createHttpError from "http-errors";
 import bcrypt from 'bcrypt'
 import moment from 'moment';
-
 import jwt from "jsonwebtoken"
+import adminModel from "../../model/adminModel/adminModel.mjs"
 import chatModel from "../../model/chatModel.mjs/";
 import userModel from "../../model/playerModel/userModel.mjs";
 import scoutModel from "../../model/scoutModel/scoutModel.mjs";
 import profileModel from "../../model/playerModel/profileModel.mjs";
-import registerModel from "../../model/scoutModel/RegisterModel.js";
+import registerModel from "../../model/scoutModel/registerModel.mjs";
 // admin login
 
 export const adminLogin = async (req, res, next) => {
@@ -29,7 +28,7 @@ export const adminLogin = async (req, res, next) => {
     }
 }
 
-export const dashbord = async (req, res, next) => {
+export const dashBord = async (req, res, next) => {
     try {
         const allUser = await userModel.find({}).countDocuments()
         const allScout = await scoutModel.find({}).countDocuments()
@@ -104,7 +103,7 @@ export const chart = async (req, res, next) => {
 
 
 
-export const allplayer = async (req, res, next) => {
+export const allPlayer = async (req, res, next) => {
     try {
         const allplayer = await userModel.find().sort({ createdAt: -1 })
         if (!allplayer) return next(createHttpError(404, "players not found"));
