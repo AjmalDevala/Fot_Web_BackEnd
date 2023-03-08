@@ -2,7 +2,7 @@ import createHttpError from "http-errors";
 import bcrypt from 'bcrypt'
 import moment from 'moment';
 import jwt from "jsonwebtoken"
-import adminModel from "../../model/adminModel/adminModel.mjs"
+import adminModel from "../../model/adminModel/adminModel.mjs";
 import chatModel from "../../model/chatModel.mjs";
 import userModel from "../../model/playerModel/userModel.mjs";
 import scoutModel from "../../model/scoutModel/scoutModel.mjs";

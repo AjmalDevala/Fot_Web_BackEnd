@@ -69,14 +69,9 @@ export const checkScout = async (req, res) => {
     
 }
 
-
-
-
-
 //'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''//
 export const register = async (req, res) => {
     const { profileUrl, dateOfBirth, age, nationality, experience, currentClub, pastClub, language, awards, address, description } = req.body
-    // const scoutId = req.params.scoutId
     const scoutId = req.decodedToken.scoutId
     const scout = await scoutModel.findOne({ _id: scoutId })
     const register = await registerModel.findOne({ scoutId })
