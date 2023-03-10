@@ -16,5 +16,7 @@ router.route("/verifyUser").get(auth, controller.checkUser);
 router.route("/showProfile").get(auth, controller.showProfile);
 router.route("/singleScout/:scoutId").get(auth, controller.singleScout);
 router.route('/editAccount').post(auth,controller.editAccount)
+router.route('/gallery').post(auth,controller.gallery)
+router.route('/pohotoDelete').post(auth,controller.pohotoDelete)
 
 export default router;

@@ -6,9 +6,7 @@ const galleryModel = new mongoose.Schema({
         required: true,
         ref: 'userData'
       }, 
-     imageUrl:[{
-        type: String, 
-      }]
+     imageUrl:[ String]
 
 })
 export default mongoose.model('galleryData', galleryModel)

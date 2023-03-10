@@ -7,6 +7,7 @@ import nodemailer from "nodemailer"
 import registerModel from "../../model/scoutModel/registerModel.mjs";
 import notificationModel from "../../model/notificationModel.mjs";
 import scoutModel from "../../model/scoutModel/scoutModel.mjs";
+import galleryModel from "../../model/playerModel/galleryModel.mjs";
 
 
 // ....................................................................................//
@@ -222,7 +223,7 @@ export const profile = async (req, res) => {
             });
             await newprofile.save()
         } else {
-            const editprofile = await profileModel.findOneAndUpdate({ userId }, {
+             await profileModel.findOneAndUpdate({ userId }, {
                 profileUrl,
                 position,
                 dateOfBirth,
@@ -237,11 +238,9 @@ export const profile = async (req, res) => {
                 awards,
                 address,
                 description
-
             });
-            await editprofile.save()
         }
-        res.json({ status: "success profile updated", updation: true });
+        res.json({ status: " profile updated", updation: true });
     } catch (error) {
         res.status(400).send({ status: false, error: "Server Issue" });
     }
@@ -256,7 +255,8 @@ export const showProfile = async (req, res, next) => {
         if (!userId) return next(createHttpError(401, 'Invalid userId'));
         const user = await userModel.findOne({ _id: userId })
         const userData = await profileModel.findOne({ userId: userId })
-        res.status(200).send({ status: true, user, userData });;
+        const gallery =await galleryModel.find({userId:userId})
+        res.status(200).send({ status: true, user, userData ,gallery });;
     } catch (error) {
         res.status(400).send({ status: false, error: "Server Issue" });
     }
@@ -347,4 +347,43 @@ export const connectScoutnotificatoin = async (req, res, next) => {
     } catch (error) {
         next(error)
     }
+}
+
+
+
+export const gallery= async  (req ,res ,next)=>{
+try {
+    const userId = req. decodedToken.userId
+    if(!userId) return next(createHttpError(404,"invalid user id"))
+    const {imageUrl} = req.body
+    const gallery=await galleryModel.findOne({userId})
+    if (!gallery) {
+        const newgallery =new galleryModel({
+            userId,
+            imageUrl
+        })
+        await newgallery.save()
+    } else {
+        await galleryModel.findOneAndUpdate({userId}, {
+            $addToSet: { imageUrl:imageUrl },
+          });
+    }
+    res.status(200).send({ mgs:"galleryUpdate succesfully" })
+    
+} catch (error) {
+    next (error)
+}
+
+}
+
+export const pohotoDelete = async (req,res,next)=>{
+    try {
+        const userId =req.decodedToken.userId
+        const {url} =req.body
+        await galleryModel.findOneAndUpdate({userId},{$pull:{imageUrl:url}})
+        res.status(200).send({msg:"succes"})
+    } catch (error) {
+        next (error)
+    }
+
 }

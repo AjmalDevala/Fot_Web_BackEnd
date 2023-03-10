@@ -6,6 +6,7 @@ import jwt from "jsonwebtoken"
 import profileModel from "../../model/playerModel/profileModel.mjs";
 import notificationModel from "../../model/notificationModel.mjs";
 import userModel from "../../model/playerModel/userModel.mjs";
+import galleryModel from "../../model/playerModel/galleryModel.mjs";
 
 
 
@@ -166,7 +167,8 @@ export const singlePlayer = async (req, res, next) => {
         if (!playerId) return next(createHttpError(401, 'invalid PlayerId'))
         const player = await profileModel.findOne({ userId: playerId }).populate("userId")
         if (!player) return next(createHttpError(401, "no player...."))
-        res.status(200).send({ player })
+        const gallery =await galleryModel.find({userId:playerId})
+        res.status(200).send({ player,gallery })
     } catch (error) {
         res.status(400).send({ status: false, error: "Server Issue" });
     }

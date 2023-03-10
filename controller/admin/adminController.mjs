@@ -105,9 +105,9 @@ export const chart = async (req, res, next) => {
 
 export const allPlayer = async (req, res, next) => {
     try {
-        const allplayer = await userModel.find().sort({ createdAt: -1 })
+        const allplayer = await userModel.find()
         if (!allplayer) return next(createHttpError(404, "players not found"));
-        const playerData = await profileModel.find();
+        const playerData = await profileModel.find()
         const player = await profileModel.find().populate('userId')
         if (!playerData) return next(createHttpError(404, "playerdata not found"));
         const PremiumPlayers = await userModel.find({ premium: true })
@@ -129,7 +129,8 @@ export const allScout = async (req, res, next) => {
         const user = await userModel.find({ _id: userId })
         const allScout = await scoutModel.find().sort({ createdAt: -1 })
         if (!allScout) return next(createHttpError(404, "scout not found"));
-        const scout = await registerModel.find().populate("scoutId")
+        const scout = await registerModel.find().populate("scoutId").sort({ createdAt: -1 })
+
         if (!scout) return next(createHttpError(404, "no scout data...."))
         res.json({ allScout, scout, user });
     } catch (error) {
@@ -213,7 +214,8 @@ export const connectedScout = async (req, res) => {
 export const connectedUsers = async (req, res, next) => {
     try {
         const { scoutId } = req.decodedToken
-        const connectedPlayers = await scoutModel.findOne({ _id: scoutId }).populate('connectedPlayers')
+        const connectedPlayers = await scoutModel.findOne({ _id: scoutId }).populate('connectedPlayers').sort({ createdAt: -1 })
+
         res.status(200).json(connectedPlayers);
     } catch (error) {
         return res.status(500).json("Internal server error");
@@ -221,8 +223,9 @@ export const connectedUsers = async (req, res, next) => {
 }
 
 
-// remoner
+// Remove User
 //..........................................................................
+
 export const removeUser = async (req, res, next) => {
     try {
         const userId = req.params.userId
