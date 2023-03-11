@@ -2,6 +2,7 @@ import createHttpError from "http-errors";
 import bcrypt from 'bcrypt'
 import moment from 'moment';
 import jwt from "jsonwebtoken"
+import nodemailer from "nodemailer"
 import adminModel from "../../model/adminModel/adminModel.mjs";
 import chatModel from "../../model/chatModel.mjs";
 import userModel from "../../model/playerModel/userModel.mjs";
@@ -111,7 +112,6 @@ export const allPlayer = async (req, res, next) => {
         const player = await profileModel.find().populate('userId')
         if (!playerData) return next(createHttpError(404, "playerdata not found"));
         const PremiumPlayers = await userModel.find({ premium: true })
-
         res.json({ allplayer, playerData, player, PremiumPlayers });
     } catch (error) {
         next(error)
@@ -230,12 +230,48 @@ export const removeUser = async (req, res, next) => {
     try {
         const userId = req.params.userId
         const scoutId = req.decodedToken.scoutId
+        const [user] = await userModel.find({_id:userId})
+        const Email= user.email
         await scoutModel.updateOne(
             { _id: scoutId },
             { $pull: { connectedPlayers: userId } },)
         await userModel.updateOne(
             { _id: userId },
             { $pull: { connectedScout: scoutId } },);
+
+            let transporter = nodemailer.createTransport({
+                host: "smtp.gmail.com",
+                port: 465,
+                secure: true,
+                service: "Gmail",
+            
+                auth: {
+                    user: "fotweb08@gmail.com",
+                    pass: "fhtrpmujqbqufwzy",
+                },
+            });
+
+            if (user) {
+                var mailOptions = {
+                    to: Email,
+                    subject: "OTP FOR SORRY YOUR SELECTION cancel: ",
+                    html:
+                        "<h3>If you receive a response, read it carefully and respond in a respectful manner. Keep in mind that the organization or team may not be able to provide specific details about why the scout was removed, as this could violate privacy policies or legal agreements. </h3>" +
+                        "</h1>", // html body
+                };
+                transporter.sendMail(mailOptions, (error, info) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    console.log("Message sent: %s", info.messageId);
+                    console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+    
+                    res.json({
+                        status: "success",
+                    });
+                });
+            }
+
         res.status(200).json({ mgs: 'success' })
     } catch (error) {
         next(error)

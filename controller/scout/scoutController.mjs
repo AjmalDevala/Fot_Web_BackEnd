@@ -9,8 +9,6 @@ import userModel from "../../model/playerModel/userModel.mjs";
 import galleryModel from "../../model/playerModel/galleryModel.mjs";
 
 
-
-
 //......................................................................................//
 // scout Signup
 export const scoutSignup = async (req, res, next) => {

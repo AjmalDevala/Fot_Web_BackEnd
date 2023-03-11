@@ -376,7 +376,7 @@ try {
 
 }
 
-export const pohotoDelete = async (req,res,next)=>{
+export const photoDelete = async (req,res,next)=>{
     try {
         const userId =req.decodedToken.userId
         const {url} =req.body
